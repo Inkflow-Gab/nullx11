@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NullX11</string>
+
+    <!-- Main screen -->
+    <string name="hero_title">NullX11</string>
+    <string name="hero_sub">Floating AI translator for chat apps — works over QQ, WeChat, Discord, games…</string>
+    <string name="card_overlay_title">Floating window</string>
+    <string name="card_capture_title">Screen capture</string>
+    <string name="status_off">OFF</string>
+    <string name="status_on">RUNNING</string>
+    <string name="capture_ok">READY</string>
+    <string name="capture_missing">NOT GRANTED</string>
+    <string name="btn_open_overlay">Open floating window</string>
+    <string name="btn_grant_capture">Allow screen capture</string>
+    <string name="steps_title">How it works</string>
+    <string name="step_1">1. Add your AI key in the bubble → Settings tab (Gemini, OpenRouter, Groq or custom).</string>
+    <string name="step_2">2. Open QQ (or any app) and tap the floating bubble.</string>
+    <string name="step_3">3. Translate tab → Screen: translated cards appear exactly on top of each text.</string>
+    <string name="step_4">4. Tap a card to restore the original text. Use Chat tab to talk with the AI.</string>
+    <string name="btn_releases">Releases on GitHub</string>
+    <string name="footer_free">Free · no ads · no premium</string>
+
+    <!-- Overlay panel -->
+    <string name="panel_title">NullX11</string>
+    <string name="tab_translate">Translate</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_settings">Settings</string>
+    <string name="mode_screen">SCREEN</string>
+    <string name="mode_text">TEXT</string>
+    <string name="btn_translate_screen">TRANSLATE SCREEN</string>
+    <string name="hint_screen">Captures the screen and places translation cards exactly over each text block. Tap a card to remove it.</string>
+    <string name="input_hint">Type text or paste a message…</string>
+    <string name="btn_translate">TRANSLATE</string>
+    <string name="btn_copy">COPY</string>
+    <string name="copied">Copied ✓</string>
+    <string name="thinking">NullX11 is thinking…</string>
+    <string name="idle">Ready — add your API key in Settings.</string>
+    <string name="no_key">Add your API key first: open the Settings tab.</string>
+    <string name="no_capture">Screen capture not granted — open NullX11 and tap “Allow screen capture”.</string>
+    <string name="chat_hint">Message the AI…</string>
+    <string name="new_chat">New chat</string>
+    <string name="provider">Provider</string>
+    <string name="api_key">API key</string>
+    <string name="model">Model</string>
+    <string name="base_url">Base URL</string>
+    <string name="target_lang">Translate into (target language)</string>
+    <string name="save">SAVE</string>
+    <string name="saved">Saved ✓ keys stay on this device.</string>
+    <string name="open_github">GitHub Releases</string>
+    <string name="privacy_note">API keys are stored only in this app\'s private storage and sent directly to the chosen provider.</string>
+    <string name="model_hint_gemini">Free keys: aistudio.google.com (gemini-2.5-flash, gemini-2.5-flash-lite)</string>
+    <string name="model_hint_openrouter">Use models ending with :free — e.g. google/gemini-2.0-flash-exp:free</string>
+    <string name="model_hint_groq">Free tier — e.g. meta-llama/llama-3.3-70b-versatile</string>
+    <string name="model_hint_custom">Any OpenAI-compatible endpoint (base URL, key, model)</string>
+    <string name="clear_all">✕ ALL</string>
+    <string name="close_panel">✕</string>
+    <string name="toast_capture_granted">Screen capture ready ✓</string>
+    <string name="toast_capture_denied">Screen capture denied.</string>
+    <string name="toast_overlay_on">Floating translator ON</string>
+    <string name="toast_overlay_need_permission">Allow “Display over other apps” first.</string>
+    <string name="toast_saving_screen">Capturing &amp; translating…</string>
+    <string name="toast_translated">Translation cards placed — tap one to remove it.</string>
+    <string name="toast_cleared">All translation cards removed.</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="translating_frames">Analyzing screen…</string>
+    <string name="set_defaults">Defaults loaded for %1$s</string>
+</resources>

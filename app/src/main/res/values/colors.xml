@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nxBg">#FF07050B</color>
+    <color name="nxSurface">#F2100C18</color>
+    <color name="nxSurfaceAlt">#E6101524</color>
+    <color name="nxCardFilled">#26FFFFFF</color>
+    <color name="nxAccent">#7C4DFF</color>
+    <color name="nxCyan">#22D3EE</color>
+    <color name="nxText">#F4F6FA</color>
+    <color name="nxTextDim">#98A2B3</color>
+    <color name="nxOk">#27C281</color>
+    <color name="nxWarn">#FFB300</color>
+    <color name="nxErr">#FF5A6E</color>
+    <color name="nxIconBg">#FF0B0913</color>
+</resources>
