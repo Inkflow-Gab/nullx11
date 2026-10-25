@@ -233,6 +233,7 @@ object LlmApi {
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             val text = stream?.bufferedReader()?.readText().orEmpty()
             if (code !in 200..299) {
+                android.util.Log.e("nullx11", "HTTP $code — ${text.take(400)}")
                 throw ApiException("HTTP $code — ${text.take(240)}")
             }
             text

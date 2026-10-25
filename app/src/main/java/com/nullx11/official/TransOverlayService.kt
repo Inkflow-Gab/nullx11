@@ -226,15 +226,14 @@ class TransOverlayService : Service() {
         root.isClickable = true
         root.isFocusable = true
         val icon = ImageView(this)
-        icon.setImageResource(R.drawable.ic_bubble)
-        icon.imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#BCF6FAFF"))
-        val iconLp = FrameLayout.LayoutParams(dp(26), dp(26))
+        icon.setImageResource(R.drawable.gamespace_ring)
+        val iconLp = FrameLayout.LayoutParams(dp(42), dp(42))
         iconLp.gravity = Gravity.CENTER
         root.addView(icon, iconLp)
         bubbleRoot = root
 
         val params = WindowManager.LayoutParams(
-            dp(50), dp(50),
+            dp(56), dp(56),
             overlayType,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
@@ -318,9 +317,8 @@ class TransOverlayService : Service() {
             gravity = Gravity.CENTER_VERTICAL
         }
         header.addView(ImageView(this).apply {
-            setImageResource(R.drawable.ic_bubble)
-            imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#22D3EE"))
-        }, LinearLayout.LayoutParams(dp(20), dp(20)))
+            setImageResource(R.drawable.gamespace_ring)
+        }, LinearLayout.LayoutParams(dp(22), dp(22)))
         header.addView(TextView(this).apply {
             text = getString(R.string.panel_title)
             textSize = 13f
@@ -610,6 +608,7 @@ class TransOverlayService : Service() {
                             setStatus(idleText())
                         }
                     } catch (e: Exception) {
+                        android.util.Log.e("nullx11", "translateText failed", e)
                         mainHandler.post {
                             go.isEnabled = true
                             copy.visibility = View.GONE
@@ -685,7 +684,7 @@ class TransOverlayService : Service() {
         projection = null
     }
 
-    /** attempt 0 = first try, 1 = single immediate retry. */
+    /** attempt 0/1/2 — Samsung One UI can be slow to hand the first frame. */
     private fun captureScreen(attempt: Int) {
         val reader = imageReader
         if (reader == null) {
@@ -693,11 +692,14 @@ class TransOverlayService : Service() {
             return
         }
         if (!capBusy.compareAndSet(false, true)) return
-        val image = try { reader.acquireLatestImage() } catch (e: Exception) { null }
+        val image = try { reader.acquireLatestImage() } catch (e: Exception) {
+            android.util.Log.e("nullx11", "acquireLatestImage failed", e)
+            null
+        }
         if (image == null) {
             capBusy.set(false)
-            if (attempt == 0) {
-                mainHandler.postDelayed({ captureScreen(1) }, 700)
+            if (attempt < 2) {
+                mainHandler.postDelayed({ captureScreen(attempt + 1) }, 900)
             } else {
                 toast(getString(R.string.error_prefix, "no frame available"))
             }
@@ -708,10 +710,13 @@ class TransOverlayService : Service() {
                 val bitmap = imageToBitmap(image)
                 image.close()
                 setStatus(getString(R.string.translating_frames))
+                android.util.Log.d("nullx11", "captured ${bitmap.width}x${bitmap.height}, calling model")
                 val found = LlmApi.screenTranslate(this, bitmap)
+                android.util.Log.d("nullx11", "screenTranslate ok: ${found.size} blocks")
                 mainHandler.post { placeChips(found) }
                 setStatus(null)
             } catch (e: Exception) {
+                android.util.Log.e("nullx11", "screenTranslate failed", e)
                 mainHandler.post { toast(getString(R.string.error_prefix, e.message ?: "?")) }
                 setStatus(null)
             } finally {
@@ -965,6 +970,7 @@ class TransOverlayService : Service() {
                 chatHistory.add("assistant" to reply)
                 mainHandler.post { tv.text = reply; autoScrollChat() }
             } catch (e: Exception) {
+                android.util.Log.e("nullx11", "chat failed", e)
                 val msg = "⚠ ${e.message}"
                 chatHistory.add("assistant" to msg)
                 mainHandler.post { tv.text = msg; autoScrollChat() }
