@@ -95,9 +95,18 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           # checkout may not carry the annotated tag object — refetch it so
-          # %(contents:body) returns the tag message, not the commit body
+          # the %(contents:*) fields read the tag annotation, not a ref that
+          # points straight at the commit
           git fetch --force origin "+refs/tags/${TAG}:refs/tags/${TAG}" >/dev/null 2>&1 || true
-          export NOTES="$(git tag -l "$TAG" --format='%(contents:body)')"
+          # single-paragraph tags live entirely in "subject", so merge both
+          TAG_SUBJECT="$(git tag -l "$TAG" --format='%(contents:subject)')"
+          TAG_BODY="$(git tag -l "$TAG" --format='%(contents:body)')"
+          if [ -n "$TAG_BODY" ]; then
+            export NOTES="$TAG_SUBJECT
+$TAG_BODY"
+          else
+            export NOTES="$TAG_SUBJECT"
+          fi
           python3 - <<'PY'
           import json, os
           version = os.environ["VNAME"].strip()

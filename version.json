@@ -2,6 +2,6 @@
   "versionCode": 2,
   "versionName": "1.1",
   "apkUrl": "https://github.com/Inkflow-Gab/nullx11/releases/download/v1.1/NullX11-1.1.apk",
-  "releaseNotes": "NullX11 1.1",
+  "releaseNotes": "Screen reading fixed: if capture permission lapses, NullX11 opens the confirm dialog right over your app and continues translating automatically. Plus in-app updates, a battery keep-alive setting, and the new Muimex-style icon (launcher + floating orb).",
   "mandatory": false
 }
