@@ -14,11 +14,18 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var tvStatusOverlay: TextView
     private lateinit var tvStatusCapture: TextView
+    private lateinit var btnUpdate: TextView
+    private lateinit var tvUpdateInfo: TextView
+
+    private var availableUpdate: Updater.Info? = null
+    private var busy = false
 
     /** MediaProjection consent dialog → hand the result to the overlay service. */
     private val consentLauncher =
@@ -46,6 +53,9 @@ class MainActivity : AppCompatActivity() {
         val btnOpenOverlay = findViewById<TextView>(R.id.btnOpenOverlay)
         val btnGrantCapture = findViewById<TextView>(R.id.btnGrantCapture)
         val btnReleases = findViewById<TextView>(R.id.btnReleases)
+        val btnBattery = findViewById<TextView>(R.id.btnBattery)
+        btnUpdate = findViewById(R.id.btnUpdate)
+        tvUpdateInfo = findViewById(R.id.tvUpdateInfo)
         tvStatusOverlay = findViewById(R.id.tvStatusOverlay)
         tvStatusCapture = findViewById(R.id.tvStatusCapture)
 
@@ -85,6 +95,26 @@ class MainActivity : AppCompatActivity() {
             } catch (_: Exception) {}
         }
 
+        // One UI aggressively kills background services — ask the user once
+        // to exempt NullX11 so the bubble + projection stay alive.
+        btnBattery.setOnClickListener {
+            try {
+                startActivity(
+                    Intent(
+                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            } catch (e: Exception) {
+                toast(getString(R.string.update_failed, e.message ?: "battery"))
+            }
+        }
+
+        btnUpdate.setOnClickListener {
+            val upd = availableUpdate
+            if (upd != null) downloadAndInstall(upd) else checkUpdate(true)
+        }
+
         try {
             val v = packageManager.getPackageInfo(packageName, 0).versionName ?: "?"
             findViewById<TextView>(R.id.tvFooter).text =
@@ -95,6 +125,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refresh()
+        checkUpdate(manual = false)
     }
 
     /** Live service state → the two status pills. */
@@ -107,6 +138,96 @@ class MainActivity : AppCompatActivity() {
         tvStatusCapture.text = getString(if (cap) R.string.capture_ok else R.string.capture_missing)
         tvStatusCapture.setTextColor(getColor(if (cap) R.color.nxOk else R.color.nxWarn))
     }
+
+    // ------------------------------------------------------------- updates
+
+    /**
+     * Reads version.json from the repo (updated by the release CI after
+     * every tagged build) and compares versionCode with the installed one.
+     */
+    private fun checkUpdate(manual: Boolean) {
+        if (busy) return
+        busy = true
+        if (manual) tvUpdateInfo.text = getString(R.string.update_checking)
+        Thread {
+            val info = Updater.fetch()
+            val cur = Updater.currentCode(this)
+            val newer = info?.takeIf { it.code > cur }
+            runOnUiThread {
+                busy = false
+                availableUpdate = newer
+                when {
+                    newer != null -> {
+                        btnUpdate.text = getString(R.string.btn_update_now)
+                        val notes = if (newer.notes.isNotBlank()) "\n${newer.notes}" else ""
+                        tvUpdateInfo.text = getString(R.string.update_available_line, newer.name) + notes
+                    }
+                    info != null -> {
+                        btnUpdate.text = getString(R.string.btn_check_updates)
+                        if (manual) tvUpdateInfo.text = getString(R.string.update_uptodate, info.name)
+                    }
+                    manual -> tvUpdateInfo.text = getString(R.string.update_failed, "connection")
+                }
+            }
+        }.start()
+    }
+
+    private fun downloadAndInstall(info: Updater.Info) {
+        if (busy) return
+        busy = true
+        btnUpdate.text = getString(R.string.update_downloading)
+        tvUpdateInfo.text = ""
+        Thread {
+            try {
+                val f = File(cacheDir, "nullx11-update.apk")
+                Updater.open(info.apkUrl).use { input ->
+                    f.outputStream().use { output -> input.copyTo(output) }
+                }
+                runOnUiThread {
+                    busy = false
+                    btnUpdate.text = getString(R.string.btn_check_updates)
+                    install(f)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("nullx11", "download update failed", e)
+                runOnUiThread {
+                    busy = false
+                    btnUpdate.text = getString(R.string.btn_check_updates)
+                    tvUpdateInfo.text = getString(R.string.update_failed, e.message ?: "download")
+                }
+            }
+        }.start()
+    }
+
+    private fun install(f: File) {
+        try {
+            if (Build.VERSION.SDK_INT >= 26 && !packageManager.canRequestPackageInstalls()) {
+                try {
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                            Uri.parse("package:$packageName")
+                        )
+                    )
+                } catch (_: Exception) {}
+                toast(getString(R.string.allow_unknown))
+                return
+            }
+            val uri = FileProvider.getUriForFile(this, "com.nullx11.official.files", f)
+            val i = Intent(Intent.ACTION_VIEW)
+                .setDataAndType(uri, "application/vnd.android.package-archive")
+                .addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            startActivity(i)
+            toast(getString(R.string.update_prompt))
+        } catch (e: Exception) {
+            android.util.Log.e("nullx11", "install launch failed", e)
+            tvUpdateInfo.text = getString(R.string.update_failed, e.message ?: "install")
+        }
+    }
+
+    // ---------------------------------------------------------------- misc
 
     private fun openOverlaySettings() {
         try {

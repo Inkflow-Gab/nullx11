@@ -94,6 +94,9 @@ jobs:
           TAG: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
         run: |
+          # checkout may not carry the annotated tag object — refetch it so
+          # %(contents:body) returns the tag message, not the commit body
+          git fetch --force origin "+refs/tags/${TAG}:refs/tags/${TAG}" >/dev/null 2>&1 || true
           export NOTES="$(git tag -l "$TAG" --format='%(contents:body)')"
           python3 - <<'PY'
           import json, os

@@ -7,4 +7,10 @@
         <item name="android:navigationBarColor">@color/nxBg</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
+    <style name="Theme.NullX11.Consent" parent="Theme.NullX11">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

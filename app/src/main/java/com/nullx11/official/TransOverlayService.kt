@@ -72,6 +72,11 @@ class TransOverlayService : Service() {
 
         const val EXTRA_CODE = "projection_code"
         const val EXTRA_DATA = "projection_data"
+        const val EXTRA_AUTORUN = "autorun_translate"
+
+        /** A tap on TRANSLATE SCREEN is waiting for a fresh consent grant. */
+        @Volatile
+        var pendingScreenTranslate: Boolean = false
     }
 
     private val NOTIF_ID = 11
@@ -134,6 +139,12 @@ class TransOverlayService : Service() {
                     setupProjection(code, data)
                     hasProjection = true
                     toast(getString(R.string.toast_capture_granted))
+                    if (intent.getBooleanExtra(EXTRA_AUTORUN, false) && pendingScreenTranslate) {
+                        pendingScreenTranslate = false
+                        // small pause: the consent activity leaves, then we
+                        // capture the app that sat underneath it
+                        mainHandler.postDelayed({ captureScreen(0) }, 1200)
+                    }
                 } catch (e: Exception) {
                     toast(getString(R.string.toast_capture_denied))
                 }
@@ -146,6 +157,7 @@ class TransOverlayService : Service() {
         super.onDestroy()
         isRunning = false
         hasProjection = false
+        pendingScreenTranslate = false
         // remove every chip and the ✕ALL chip synchronously (main thread)
         clearChipsSync(removeClearAllChip = true)
         mainHandler.removeCallbacksAndMessages(null)
@@ -627,17 +639,40 @@ class TransOverlayService : Service() {
     }
 
     private fun startScreenTranslate() {
-        if (!hasProjection) {
-            toast(getString(R.string.no_capture))
-            return
-        }
         if (Prefs.apiKey(this, Prefs.provider(this)).isBlank()) {
             toast(getString(R.string.no_key))
+            return
+        }
+        if (!hasProjection || imageReader == null) {
+            // permission lapsed or the projection died — recover in place
+            // with a fresh consent dialog instead of a dead-end message
+            collapsePanel()
+            requestCaptureConsent()
             return
         }
         collapsePanel()
         toast(getString(R.string.toast_saving_screen))
         mainHandler.postDelayed({ captureScreen(0) }, 480)
+    }
+
+    /**
+     * Self-healing re-consent: opens the system capture dialog right over
+     * whatever app is on screen. The result relaunches this service with
+     * EXTRA_AUTORUN and the translation continues by itself.
+     */
+    private fun requestCaptureConsent() {
+        pendingScreenTranslate = true
+        toast(getString(R.string.grant_capture_first))
+        try {
+            startActivity(
+                Intent(this, CaptureConsentActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("nullx11", "consent activity launch failed", e)
+            pendingScreenTranslate = false
+            toast(getString(R.string.no_capture))
+        }
     }
 
     // ------------------------------------------------------- screen capture
@@ -688,7 +723,7 @@ class TransOverlayService : Service() {
     private fun captureScreen(attempt: Int) {
         val reader = imageReader
         if (reader == null) {
-            toast(getString(R.string.no_capture))
+            requestCaptureConsent()
             return
         }
         if (!capBusy.compareAndSet(false, true)) return

@@ -65,4 +65,18 @@
     <string name="error_prefix">Error: %1$s</string>
     <string name="translating_frames">Analyzing screen…</string>
     <string name="set_defaults">Defaults loaded for %1$s</string>
+
+    <!-- v1.2: self-healing capture + in-app updater -->
+    <string name="grant_capture_first">Confirm the capture dialog to translate…</string>
+    <string name="btn_battery">Keep app alive — ignore battery optimizations</string>
+    <string name="card_updates_title">Updates</string>
+    <string name="btn_check_updates">Check for updates</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_available_line">v%1$s is available</string>
+    <string name="update_uptodate">Up to date — v%1$s</string>
+    <string name="allow_unknown">Allow “Install unknown apps” for NullX11, then try again.</string>
+    <string name="btn_update_now">Download &amp; install</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_prompt">Installer opened — confirm the installation.</string>
+    <string name="update_failed">Update failed: %1$s</string>
 </resources>
