@@ -17,9 +17,11 @@ import android.graphics.PixelFormat
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.hardware.display.DisplayManager
+import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
@@ -91,7 +93,7 @@ class TransOverlayService : Service() {
     private val chatHistory = ArrayList<Pair<String, String>>()
 
     private var projection: MediaProjection? = null
-    private var virtualDisplay: DisplayManager.VirtualDisplay? = null
+    private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
     private var screenW = 0
     private var screenH = 0
@@ -305,8 +307,8 @@ class TransOverlayService : Service() {
         panelParams = WindowManager.LayoutParams(
             dp(292), WindowManager.LayoutParams.WRAP_CONTENT,
             overlayType,
-            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+            // FLAG_WATCH_OUTSIDE | FLAG_HARDWARE_ACCELERATED
+            0x00040000 or 0x01000000,
             PixelFormat.TRANSLUCENT
         ).apply { gravity = Gravity.TOP or Gravity.START }
 
@@ -778,7 +780,7 @@ class TransOverlayService : Service() {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
-                x = x.coerceIn(0, screenW - w)
+                this.x = x.coerceIn(0, screenW - w)
                 this.y = y.coerceIn(dp(18), screenH - dp(30))
             }
             try { wm.addView(tv, p) } catch (_: Exception) { continue }
@@ -1001,7 +1003,7 @@ class TransOverlayService : Service() {
         }
         holder.addView(
             TextView(this).apply {
-                text = text
+                this.text = text
                 textSize = 12f
                 setTextColor(Color.WHITE)
                 background = getDrawable(R.drawable.bg_msg_user)
@@ -1164,7 +1166,10 @@ class TransOverlayService : Service() {
                 background = getDrawable(R.drawable.bg_btn_ghost)
                 setOnClickListener {
                     try {
-                        val i = Intent(Intent.ACTION_VIEW, "https://github.com/Inkflow-Gab/nullx11/releases")
+                        val i = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://github.com/Inkflow-Gab/nullx11/releases")
+                        )
                         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(i)
                     } catch (_: Exception) {}

@@ -59,8 +59,8 @@ object Prefs {
         "gemini" -> "https://generativelanguage.googleapis.com/v1beta/models/"
         "openrouter" -> "https://openrouter.ai/api/v1/chat/completions"
         "groq" -> "https://api.groq.com/openai/v1/chat/completions"
-        else -> get(c).getString(BASE_CUSTOM, "").trim()
-    } ?: ""
+        else -> (get(c).getString(BASE_CUSTOM, "") ?: "").trim()
+    }
 
     fun targetLang(c: Context): String =
         get(c).getString(TARGET_LANG, DEFAULT_TARGET_LANG)?.takeIf { it.isNotBlank() } ?: DEFAULT_TARGET_LANG
